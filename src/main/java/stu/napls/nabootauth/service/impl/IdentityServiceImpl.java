@@ -18,7 +18,7 @@ public class IdentityServiceImpl implements IdentityService {
     private IdentityRepository identityRepository;
 
     @Override
-    public Identity create(Identity identity) {
+    public Identity update(Identity identity) {
         return identityRepository.save(identity);
     }
 

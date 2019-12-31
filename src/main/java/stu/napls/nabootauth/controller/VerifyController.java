@@ -42,7 +42,7 @@ public class VerifyController {
 
         Token t = tokenService.findByContent(token);
         Assert.notNull(t, "Token is invalid");
-        Assert.isTrue(t.getStatus() == StatusCode.NORMAL, "Token expired.");
+        Assert.isTrue(t.getStatus() == StatusCode.Token.NORMAL.getValue(), "Token expired.");
 
         return Response.success("Verified.", claims.getSubject());
     }

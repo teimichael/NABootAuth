@@ -3,6 +3,7 @@ package stu.napls.nabootauth.controller;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import stu.napls.nabootauth.config.GlobalKey;
@@ -12,6 +13,7 @@ import stu.napls.nabootauth.core.exception.Assert;
 import stu.napls.nabootauth.core.response.Response;
 import stu.napls.nabootauth.model.Identity;
 import stu.napls.nabootauth.model.Token;
+import stu.napls.nabootauth.model.vo.AuthRegister;
 import stu.napls.nabootauth.service.IdentityService;
 import stu.napls.nabootauth.service.TokenService;
 
@@ -56,13 +58,13 @@ public class AuthController {
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS512, GlobalKey.JWT_SIGNING_KEY)
                 .compact());
-        token.setStatus(StatusCode.NORMAL);
+        token.setStatus(StatusCode.Token.NORMAL.getValue());
         tokenService.update(token);
         return Response.success("Login successfully.", token.getContent());
     }
 
-    @PostMapping("/register")
-    public Response register(String username, String password) {
+    @PostMapping("/preregister")
+    public Response preRegister(String username, String password) {
         Assert.isNull(identityService.findByUsername(username), ErrorCode.USERNAME_EXIST, "Username exists.");
         Identity identity = new Identity();
         identity.setUuid(UUID.randomUUID().toString());
@@ -71,23 +73,33 @@ public class AuthController {
         Date date = new Date();
         identity.setCreateDate(date);
         identity.setUpdateDate(date);
-        identity.setStatus(StatusCode.NORMAL);
+        identity.setStatus(StatusCode.Identity.PREREGISTER.getValue());
 
         Token token = new Token();
-        token.setStatus(StatusCode.INVALID);
+        token.setStatus(StatusCode.Token.INVALID.getValue());
         tokenService.create(token);
 
         identity.setToken(token);
-        identityService.create(identity);
+        identityService.update(identity);
+        return Response.success("Preregister successfully.", identity.getUuid());
+    }
+
+    @PostMapping("/register")
+    public Response register(@RequestBody AuthRegister authRegister) {
+        Identity identity = identityService.findByUuid(authRegister.getUuid());
+        Assert.notNull(identity, "Register failed because UUID is missing.");
+        identity.setStatus(StatusCode.Identity.NORMAL.getValue());
+        identityService.update(identity);
         return Response.success("Register successfully.", identity.getUuid());
     }
 
     @PostMapping("/logout")
     public Response logout(String uuid) {
+
         Identity identity = identityService.findByUuid(uuid);
         Assert.notNull(identity, ErrorCode.USERNAME_NOT_EXIST, "Username does not exist.");
         Token token = identity.getToken();
-        token.setStatus(StatusCode.INVALID);
+        token.setStatus(StatusCode.Token.INVALID.getValue());
         tokenService.update(token);
         return Response.success("Logout successfully.");
     }

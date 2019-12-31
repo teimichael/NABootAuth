@@ -1,7 +1,29 @@
 package stu.napls.nabootauth.core.dictionary;
 
-public interface StatusCode {
-    int NORMAL = 0;
+import lombok.Getter;
 
-    int INVALID = 1;
+public interface StatusCode {
+
+    @Getter
+    enum Identity {
+        NORMAL(0), PREREGISTER(1);
+
+        private final int value;
+
+        private Identity(int value) {
+            this.value = value;
+        }
+    }
+
+    @Getter
+    enum Token {
+        NORMAL(0), INVALID(1);
+
+        private final int value;
+
+        private Token(int value) {
+            this.value = value;
+        }
+    }
+
 }
