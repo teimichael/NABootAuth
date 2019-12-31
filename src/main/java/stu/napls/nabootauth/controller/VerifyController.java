@@ -3,12 +3,14 @@ package stu.napls.nabootauth.controller;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import stu.napls.nabootauth.config.GlobalKey;
 import stu.napls.nabootauth.core.dictionary.StatusCode;
 import stu.napls.nabootauth.core.exception.Assert;
 import stu.napls.nabootauth.core.response.Response;
 import stu.napls.nabootauth.model.Token;
+import stu.napls.nabootauth.model.vo.AuthVerify;
 import stu.napls.nabootauth.service.TokenService;
 
 import javax.annotation.Resource;
@@ -25,7 +27,8 @@ public class VerifyController {
     private TokenService tokenService;
 
     @PostMapping("/verify")
-    public Response verifyToken(String token) {
+    public Response verifyToken(@RequestBody AuthVerify authVerify) {
+        String token = authVerify.getToken();
 
         // Validate
         Assert.notNull(token, "No token information.");

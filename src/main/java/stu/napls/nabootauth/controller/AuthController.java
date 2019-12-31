@@ -13,6 +13,9 @@ import stu.napls.nabootauth.core.exception.Assert;
 import stu.napls.nabootauth.core.response.Response;
 import stu.napls.nabootauth.model.Identity;
 import stu.napls.nabootauth.model.Token;
+import stu.napls.nabootauth.model.vo.AuthLogin;
+import stu.napls.nabootauth.model.vo.AuthLogout;
+import stu.napls.nabootauth.model.vo.AuthPreregister;
 import stu.napls.nabootauth.model.vo.AuthRegister;
 import stu.napls.nabootauth.service.IdentityService;
 import stu.napls.nabootauth.service.TokenService;
@@ -37,10 +40,10 @@ public class AuthController {
     private TokenService tokenService;
 
     @PostMapping("/login")
-    public Response login(String username, String password) {
-        Identity identity = identityService.findByUsername(username);
+    public Response login(@RequestBody AuthLogin authLogin) {
+        Identity identity = identityService.findByUsername(authLogin.getUsername());
         Assert.notNull(identity, ErrorCode.USERNAME_NOT_EXIST, "Username does not exist.");
-        Assert.isTrue(identity.getPassword().equals(password), ErrorCode.PASSWORD_WRONG, "Wrong password.");
+        Assert.isTrue(identity.getPassword().equals(authLogin.getPassword()), ErrorCode.PASSWORD_WRONG, "Wrong password.");
 
         Token token = identity.getToken();
         Calendar calendar = Calendar.getInstance();
@@ -64,12 +67,17 @@ public class AuthController {
     }
 
     @PostMapping("/preregister")
-    public Response preRegister(String username, String password) {
-        Assert.isNull(identityService.findByUsername(username), ErrorCode.USERNAME_EXIST, "Username exists.");
+    public Response preRegister(@RequestBody AuthPreregister authPreregister) {
+        Identity existIdentity = identityService.findByUsername(authPreregister.getUsername());
+        Assert.isTrue(existIdentity == null || existIdentity.getStatus() == StatusCode.Identity.PREREGISTER.getValue(), ErrorCode.USERNAME_EXIST, "Username exists.");
+        if (existIdentity != null && existIdentity.getStatus() == StatusCode.Identity.PREREGISTER.getValue()) {
+            return Response.success("Preregister successfully.", existIdentity.getUuid());
+        }
+
         Identity identity = new Identity();
         identity.setUuid(UUID.randomUUID().toString());
-        identity.setUsername(username);
-        identity.setPassword(password);
+        identity.setUsername(authPreregister.getUsername());
+        identity.setPassword(authPreregister.getPassword());
         Date date = new Date();
         identity.setCreateDate(date);
         identity.setUpdateDate(date);
@@ -93,10 +101,14 @@ public class AuthController {
         return Response.success("Register successfully.", identity.getUuid());
     }
 
+    /**
+     * This request must be authenticated before calling.
+     * @param authLogout
+     * @return
+     */
     @PostMapping("/logout")
-    public Response logout(String uuid) {
-
-        Identity identity = identityService.findByUuid(uuid);
+    public Response logout(@RequestBody AuthLogout authLogout) {
+        Identity identity = identityService.findByUuid(authLogout.getUuid());
         Assert.notNull(identity, ErrorCode.USERNAME_NOT_EXIST, "Username does not exist.");
         Token token = identity.getToken();
         token.setStatus(StatusCode.Token.INVALID.getValue());
