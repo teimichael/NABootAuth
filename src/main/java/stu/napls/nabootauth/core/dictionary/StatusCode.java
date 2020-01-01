@@ -10,7 +10,7 @@ public interface StatusCode {
 
         private final int value;
 
-        private Identity(int value) {
+        Identity(int value) {
             this.value = value;
         }
     }
@@ -21,7 +21,7 @@ public interface StatusCode {
 
         private final int value;
 
-        private Token(int value) {
+        Token(int value) {
             this.value = value;
         }
     }
