@@ -4,5 +4,8 @@ spring:
     username: root
 #    password: mysql
 
-cors:
-  front-app-url: http://localhost:9528
+webserver:
+  url: http://localhost:8080
+
+socketserver:
+  url: http://localhost:9010
