@@ -78,9 +78,9 @@ public class AuthController {
         identity.setUuid(UUID.randomUUID().toString());
         identity.setUsername(authPreregister.getUsername());
         identity.setPassword(authPreregister.getPassword());
-        Date date = new Date();
-        identity.setCreateDate(date);
-        identity.setUpdateDate(date);
+//        Date date = new Date();
+//        identity.setCreateDate(date);
+//        identity.setUpdateDate(date);
         identity.setStatus(StatusCode.Identity.PREREGISTER.getValue());
 
         Token token = new Token();
