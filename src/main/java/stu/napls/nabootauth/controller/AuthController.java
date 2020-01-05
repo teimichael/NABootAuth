@@ -43,6 +43,7 @@ public class AuthController {
     public Response login(@RequestBody AuthLogin authLogin) {
         Identity identity = identityService.findByUsername(authLogin.getUsername());
         Assert.notNull(identity, ErrorCode.USERNAME_NOT_EXIST, "Username does not exist.");
+        Assert.isTrue(identity.getStatus() == StatusCode.Identity.NORMAL.getValue(), ErrorCode.PASSWORD_WRONG, "Account is not normal.");
         Assert.isTrue(identity.getPassword().equals(authLogin.getPassword()), ErrorCode.PASSWORD_WRONG, "Wrong password.");
 
         Token token = identity.getToken();
