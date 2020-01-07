@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import stu.napls.nabootauth.config.GlobalKey;
-import stu.napls.nabootauth.core.dictionary.StatusCode;
+import stu.napls.nabootauth.core.dictionary.StatusConst;
 import stu.napls.nabootauth.core.exception.Assert;
 import stu.napls.nabootauth.core.response.Response;
 import stu.napls.nabootauth.model.Token;
@@ -45,7 +45,7 @@ public class VerifyController {
 
         Token t = tokenService.findByContent(token);
         Assert.notNull(t, "Token is invalid");
-        Assert.isTrue(t.getStatus() == StatusCode.Token.NORMAL.getValue(), "Token expired.");
+        Assert.isTrue(t.getStatus() == StatusConst.Token.NORMAL.getValue(), "Token expired.");
 
         return Response.success("Verified.", claims.getSubject());
     }

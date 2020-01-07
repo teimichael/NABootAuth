@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import stu.napls.nabootauth.core.dictionary.StatusCode;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -18,10 +19,10 @@ public class Identity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "uuid")
+    @Column(name = "uuid", unique = true)
     private String uuid;
 
-    @Column(name = "username")
+    @Column(name = "username", unique = true)
     private String username;
 
     @Column(name = "password")
@@ -35,7 +36,7 @@ public class Identity {
     @LastModifiedDate
     private Date updateDate;
 
-    @Column(name = "status")
+    @Column(name = "status", columnDefinition = "integer default " + StatusCode.NORMAL)
     private int status;
 
     @OneToOne(cascade = CascadeType.ALL)

@@ -1,6 +1,7 @@
 package stu.napls.nabootauth.model;
 
 import lombok.Data;
+import stu.napls.nabootauth.core.dictionary.StatusCode;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -14,7 +15,7 @@ public class Token {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "content")
+    @Column(name = "content", unique = true)
     private String content;
 
     @Column(name = "issuingDate")
@@ -23,7 +24,7 @@ public class Token {
     @Column(name = "expiryDate")
     private Date expiryDate;
 
-    @Column(name = "status")
+    @Column(name = "status", columnDefinition = "integer default " + StatusCode.NORMAL)
     private int status;
 
 }

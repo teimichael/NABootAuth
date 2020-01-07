@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import stu.napls.nabootauth.config.GlobalKey;
 import stu.napls.nabootauth.core.dictionary.ErrorCode;
-import stu.napls.nabootauth.core.dictionary.StatusCode;
+import stu.napls.nabootauth.core.dictionary.StatusConst;
 import stu.napls.nabootauth.core.exception.Assert;
 import stu.napls.nabootauth.core.response.Response;
 import stu.napls.nabootauth.model.Identity;
@@ -43,7 +43,7 @@ public class AuthController {
     public Response login(@RequestBody AuthLogin authLogin) {
         Identity identity = identityService.findByUsername(authLogin.getUsername());
         Assert.notNull(identity, ErrorCode.USERNAME_NOT_EXIST, "Username does not exist.");
-        Assert.isTrue(identity.getStatus() == StatusCode.Identity.NORMAL.getValue(), ErrorCode.PASSWORD_WRONG, "Account is not normal.");
+        Assert.isTrue(identity.getStatus() == StatusConst.Identity.NORMAL.getValue(), ErrorCode.PASSWORD_WRONG, "Account is not normal.");
         Assert.isTrue(identity.getPassword().equals(authLogin.getPassword()), ErrorCode.PASSWORD_WRONG, "Wrong password.");
 
         Token token = identity.getToken();
@@ -62,7 +62,7 @@ public class AuthController {
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS512, GlobalKey.JWT_SIGNING_KEY)
                 .compact());
-        token.setStatus(StatusCode.Token.NORMAL.getValue());
+        token.setStatus(StatusConst.Token.NORMAL.getValue());
         tokenService.update(token);
         return Response.success("Login successfully.", token.getContent());
     }
@@ -70,8 +70,8 @@ public class AuthController {
     @PostMapping("/preregister")
     public Response preRegister(@RequestBody AuthPreregister authPreregister) {
         Identity existIdentity = identityService.findByUsername(authPreregister.getUsername());
-        Assert.isTrue(existIdentity == null || existIdentity.getStatus() == StatusCode.Identity.PREREGISTER.getValue(), ErrorCode.USERNAME_EXIST, "Username exists.");
-        if (existIdentity != null && existIdentity.getStatus() == StatusCode.Identity.PREREGISTER.getValue()) {
+        Assert.isTrue(existIdentity == null || existIdentity.getStatus() == StatusConst.Identity.PREREGISTER.getValue(), ErrorCode.USERNAME_EXIST, "Username exists.");
+        if (existIdentity != null && existIdentity.getStatus() == StatusConst.Identity.PREREGISTER.getValue()) {
             return Response.success("Preregister successfully.", existIdentity.getUuid());
         }
 
@@ -82,10 +82,10 @@ public class AuthController {
 //        Date date = new Date();
 //        identity.setCreateDate(date);
 //        identity.setUpdateDate(date);
-        identity.setStatus(StatusCode.Identity.PREREGISTER.getValue());
+        identity.setStatus(StatusConst.Identity.PREREGISTER.getValue());
 
         Token token = new Token();
-        token.setStatus(StatusCode.Token.INVALID.getValue());
+        token.setStatus(StatusConst.Token.INVALID.getValue());
         tokenService.create(token);
 
         identity.setToken(token);
@@ -97,7 +97,7 @@ public class AuthController {
     public Response register(@RequestBody AuthRegister authRegister) {
         Identity identity = identityService.findByUuid(authRegister.getUuid());
         Assert.notNull(identity, "Register failed because UUID is missing.");
-        identity.setStatus(StatusCode.Identity.NORMAL.getValue());
+        identity.setStatus(StatusConst.Identity.NORMAL.getValue());
         identityService.update(identity);
         return Response.success("Register successfully.", identity.getUuid());
     }
@@ -112,7 +112,7 @@ public class AuthController {
         Identity identity = identityService.findByUuid(authLogout.getUuid());
         Assert.notNull(identity, ErrorCode.USERNAME_NOT_EXIST, "Username does not exist.");
         Token token = identity.getToken();
-        token.setStatus(StatusCode.Token.INVALID.getValue());
+        token.setStatus(StatusConst.Token.INVALID.getValue());
         tokenService.update(token);
         return Response.success("Logout successfully.");
     }
