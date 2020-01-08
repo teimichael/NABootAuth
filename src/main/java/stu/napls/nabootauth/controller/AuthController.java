@@ -2,13 +2,15 @@ package stu.napls.nabootauth.controller;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import stu.napls.nabootauth.config.GlobalKey;
 import stu.napls.nabootauth.core.dictionary.ErrorCode;
-import stu.napls.nabootauth.core.dictionary.StatusConst;
+import stu.napls.nabootauth.core.dictionary.IdentityConst;
+import stu.napls.nabootauth.core.dictionary.TokenConst;
 import stu.napls.nabootauth.core.exception.Assert;
 import stu.napls.nabootauth.core.response.Response;
 import stu.napls.nabootauth.model.Identity;
@@ -39,12 +41,15 @@ public class AuthController {
     @Resource
     private TokenService tokenService;
 
+    private BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+
+
     @PostMapping("/login")
     public Response login(@RequestBody AuthLogin authLogin) {
         Identity identity = identityService.findByUsername(authLogin.getUsername());
         Assert.notNull(identity, ErrorCode.USERNAME_NOT_EXIST, "Username does not exist.");
-        Assert.isTrue(identity.getStatus() == StatusConst.Identity.NORMAL.getValue(), ErrorCode.PASSWORD_WRONG, "Account is not normal.");
-        Assert.isTrue(identity.getPassword().equals(authLogin.getPassword()), ErrorCode.PASSWORD_WRONG, "Wrong password.");
+        Assert.isTrue(identity.getStatus() == IdentityConst.NORMAL, ErrorCode.ABNORMAL, "Account is not normal.");
+        Assert.isTrue(bCryptPasswordEncoder.matches(authLogin.getPassword(), identity.getPassword()), ErrorCode.PASSWORD_WRONG, "Wrong password.");
 
         Token token = identity.getToken();
         Calendar calendar = Calendar.getInstance();
@@ -62,7 +67,7 @@ public class AuthController {
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS512, GlobalKey.JWT_SIGNING_KEY)
                 .compact());
-        token.setStatus(StatusConst.Token.NORMAL.getValue());
+        token.setStatus(TokenConst.NORMAL);
         tokenService.update(token);
         return Response.success("Login successfully.", token.getContent());
     }
@@ -70,22 +75,21 @@ public class AuthController {
     @PostMapping("/preregister")
     public Response preRegister(@RequestBody AuthPreregister authPreregister) {
         Identity existIdentity = identityService.findByUsername(authPreregister.getUsername());
-        Assert.isTrue(existIdentity == null || existIdentity.getStatus() == StatusConst.Identity.PREREGISTER.getValue(), ErrorCode.USERNAME_EXIST, "Username exists.");
-        if (existIdentity != null && existIdentity.getStatus() == StatusConst.Identity.PREREGISTER.getValue()) {
+
+        // Whether is preregistered.
+        Assert.isTrue(existIdentity == null || existIdentity.getStatus() == IdentityConst.PREREGISTER, ErrorCode.USERNAME_EXIST, "Username exists.");
+        if (existIdentity != null && existIdentity.getStatus() == IdentityConst.PREREGISTER) {
             return Response.success("Preregister successfully.", existIdentity.getUuid());
         }
 
         Identity identity = new Identity();
         identity.setUuid(UUID.randomUUID().toString());
         identity.setUsername(authPreregister.getUsername());
-        identity.setPassword(authPreregister.getPassword());
-//        Date date = new Date();
-//        identity.setCreateDate(date);
-//        identity.setUpdateDate(date);
-        identity.setStatus(StatusConst.Identity.PREREGISTER.getValue());
+        identity.setPassword(bCryptPasswordEncoder.encode(authPreregister.getPassword()));
+        identity.setStatus(IdentityConst.PREREGISTER);
 
         Token token = new Token();
-        token.setStatus(StatusConst.Token.INVALID.getValue());
+        token.setStatus(TokenConst.INVALID);
         tokenService.create(token);
 
         identity.setToken(token);
@@ -97,13 +101,14 @@ public class AuthController {
     public Response register(@RequestBody AuthRegister authRegister) {
         Identity identity = identityService.findByUuid(authRegister.getUuid());
         Assert.notNull(identity, "Register failed because UUID is missing.");
-        identity.setStatus(StatusConst.Identity.NORMAL.getValue());
+        identity.setStatus(IdentityConst.NORMAL);
         identityService.update(identity);
         return Response.success("Register successfully.", identity.getUuid());
     }
 
     /**
      * This request must be authenticated before calling.
+     *
      * @param authLogout
      * @return
      */
@@ -112,7 +117,7 @@ public class AuthController {
         Identity identity = identityService.findByUuid(authLogout.getUuid());
         Assert.notNull(identity, ErrorCode.USERNAME_NOT_EXIST, "Username does not exist.");
         Token token = identity.getToken();
-        token.setStatus(StatusConst.Token.INVALID.getValue());
+        token.setStatus(TokenConst.INVALID);
         tokenService.update(token);
         return Response.success("Logout successfully.");
     }
