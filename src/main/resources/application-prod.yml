@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:mysql://mysql-auth:3306/nabootauth?autoReconnect=true&useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=CONVERT_TO_NULL&useSSL=false&serverTimezone=CTT&allowPublicKeyRetrieval=true
     username: root
-    password: mysql
+    password: nabootauth
 
 webserver:
   url: http://web-service:8080
