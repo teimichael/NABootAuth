@@ -28,6 +28,9 @@ public class Identity {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "source")
+    private String source;
+
     @Column(name = "createDate")
     @CreatedDate
     private Date createDate;

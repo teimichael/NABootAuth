@@ -86,6 +86,7 @@ public class AuthController {
         identity.setUuid(UUID.randomUUID().toString());
         identity.setUsername(authPreregister.getUsername());
         identity.setPassword(bCryptPasswordEncoder.encode(authPreregister.getPassword()));
+        identity.setSource(authPreregister.getSource());
         identity.setStatus(IdentityConst.PREREGISTER);
 
         Token token = new Token();
