@@ -28,6 +28,11 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
+    public Identity findByUsernameAndSource(String username, String source) {
+        return identityRepository.findByUsernameAndSource(username, source);
+    }
+
+    @Override
     public Identity findByUuid(String uuid) {
         return identityRepository.findByUuid(uuid);
     }

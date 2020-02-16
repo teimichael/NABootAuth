@@ -46,7 +46,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public Response login(@RequestBody AuthLogin authLogin) {
-        Identity identity = identityService.findByUsername(authLogin.getUsername());
+        Identity identity = identityService.findByUsernameAndSource(authLogin.getUsername(), authLogin.getSource());
         Assert.notNull(identity, ErrorCode.USERNAME_NOT_EXIST, "Username does not exist.");
         Assert.isTrue(identity.getStatus() == IdentityConst.NORMAL, ErrorCode.ABNORMAL, "Account is not normal.");
         Assert.isTrue(bCryptPasswordEncoder.matches(authLogin.getPassword(), identity.getPassword()), ErrorCode.PASSWORD_WRONG, "Wrong password.");

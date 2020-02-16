@@ -7,5 +7,7 @@ public interface IdentityService {
 
     Identity findByUsername(String username);
 
+    Identity findByUsernameAndSource(String username, String source);
+
     Identity findByUuid(String uuid);
 }
