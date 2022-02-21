@@ -1,17 +1,19 @@
 package stu.napls.nabootauth.controller;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import stu.napls.nabootauth.config.GlobalKey;
 import stu.napls.nabootauth.core.dictionary.TokenConst;
 import stu.napls.nabootauth.core.exception.Assert;
-import stu.napls.nabootauth.core.exception.SystemException;
 import stu.napls.nabootauth.core.response.Response;
-import stu.napls.nabootauth.model.Token;
+import stu.napls.nabootauth.model.Identity;
 import stu.napls.nabootauth.model.vo.AuthVerify;
+import stu.napls.nabootauth.service.IdentityService;
 import stu.napls.nabootauth.service.TokenService;
 
 import javax.annotation.Resource;
@@ -25,33 +27,35 @@ import java.util.Date;
 public class VerifyController {
 
     @Resource
+    private IdentityService identityService;
+
+    @Resource
     private TokenService tokenService;
 
     @PostMapping("/verify")
     public Response<String> verifyToken(@RequestBody AuthVerify authVerify) {
-        String token = authVerify.getToken();
+        String token = authVerify.getToken().replaceFirst("Bearer ", "");
 
-        // Validate
+        // Basic validation
         Assert.notNull(token, "No token information.");
         Assert.isTrue(!"".equals(token), "Token is empty.");
 
         // Parse JWT
-        Claims claims;
-        try {
-             claims = Jwts.parser()
-                    .setSigningKey(GlobalKey.JWT_SIGNING_KEY)
-                    .parseClaimsJws(token.replace("Bearer ", ""))
-                    .getBody();
-        } catch (Exception e) {
-            throw new SystemException("Token is invalid.");
-        }
+        Algorithm algorithm = Algorithm.HMAC512(GlobalKey.JWT_SIGNING_KEY);
+        JWTVerifier verifier = JWT.require(algorithm)
+                .withIssuer(GlobalKey.ISSUER)
+                .build(); //Reusable verifier instance
+        DecodedJWT jwt = verifier.verify(token);
 
-        Assert.isTrue(claims.getExpiration().after(new Date()), "Token expired.");
+        // Expiration
+        Assert.isTrue(jwt.getExpiresAt().after(new Date()), "Token has expired.");
 
-        Token t = tokenService.findByContent(token);
-        Assert.notNull(t, "Token is invalid");
-        Assert.isTrue(t.getStatus() == TokenConst.NORMAL, "Token expired.");
+        Identity identity = identityService.findByUuid(jwt.getSubject());
+        // Corresponding Identity does not exist
+        Assert.notNull(identity, "Token is invalid");
 
-        return Response.success("Verified.", claims.getSubject());
+        Assert.isTrue(identity.getToken().getContent().equals(authVerify.getToken()) && identity.getToken().getStatus() == TokenConst.NORMAL, "Token is abnormal.");
+
+        return Response.success("Verified.", identity.getUuid());
     }
 }

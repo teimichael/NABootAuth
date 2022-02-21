@@ -1,6 +1,7 @@
 package stu.napls.nabootauth.core.exception;
 
-import io.jsonwebtoken.ExpiredJwtException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -24,10 +25,17 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseBody
-    @ExceptionHandler(value = ExpiredJwtException.class)
-    public Response<String> expiredJwtExceptionHandler(ExpiredJwtException e) {
+    @ExceptionHandler(value = TokenExpiredException.class)
+    public Response<String> expiredJwtExceptionHandler(TokenExpiredException e) {
         logger.error(e.getMessage());
-        return Response.failure("Token expired.");
+        return Response.failure("Token has expired.");
+    }
+
+    @ResponseBody
+    @ExceptionHandler(value = JWTVerificationException.class)
+    public Response<String> expiredJwtExceptionHandler(JWTVerificationException e) {
+        logger.error(e.getMessage());
+        return Response.failure("Token is invalid.");
     }
 
     @ResponseBody

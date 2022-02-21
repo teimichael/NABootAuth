@@ -1,7 +1,7 @@
 package stu.napls.nabootauth.controller;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,7 +51,10 @@ public class AuthController {
         Assert.isTrue(identity.getStatus() == IdentityConst.NORMAL, ErrorCode.ABNORMAL, "Account is not normal.");
         Assert.isTrue(bCryptPasswordEncoder.matches(authLogin.getPassword(), identity.getPassword()), ErrorCode.PASSWORD_WRONG, "Wrong password.");
 
+        // Generate and set token
         Token token = identity.getToken();
+
+        Algorithm algorithm = Algorithm.HMAC512(GlobalKey.JWT_SIGNING_KEY);
         Calendar calendar = Calendar.getInstance();
         Date now = calendar.getTime();
         calendar.setTime(new Date());
@@ -61,12 +64,11 @@ public class AuthController {
         Date expiryDate = calendar.getTime();
         token.setIssuingDate(now);
         token.setExpiryDate(expiryDate);
-        token.setContent("Bearer " + Jwts.builder()
-                .setSubject(identity.getUuid())
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, GlobalKey.JWT_SIGNING_KEY)
-                .compact());
+        token.setContent("Bearer " + JWT.create()
+                .withIssuer(GlobalKey.ISSUER)
+                .withSubject(identity.getUuid())
+                .withExpiresAt(expiryDate)
+                .sign(algorithm));
         token.setStatus(TokenConst.NORMAL);
         tokenService.update(token);
         return Response.success("Login successfully.", token.getContent());
@@ -107,8 +109,8 @@ public class AuthController {
     /**
      * This request must be authenticated before calling.
      *
-     * @param authLogout
-     * @return
+     * @param authLogout logout object
+     * @return message
      */
     @PostMapping("/logout")
     public Response<String> logout(@RequestBody AuthLogout authLogout) {

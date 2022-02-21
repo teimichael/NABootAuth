@@ -3,7 +3,7 @@ package stu.napls.nabootauth;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-public class Encoder {
+public class EncoderTest {
     @Test
     public void bCryptPasswordEncoding() {
         String password = "NabootAuth#!$";
