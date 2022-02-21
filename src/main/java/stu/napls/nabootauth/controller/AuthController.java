@@ -28,8 +28,8 @@ import java.util.Date;
 import java.util.UUID;
 
 /**
- * @Author Tei Michael
- * @Date 12/28/2019
+ * @author Tei Michael
+ * @date 2/21/2022
  */
 @RestController
 @RequestMapping("/auth")
@@ -41,11 +41,11 @@ public class AuthController {
     @Resource
     private TokenService tokenService;
 
-    private BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
 
     @PostMapping("/login")
-    public Response login(@RequestBody AuthLogin authLogin) {
+    public Response<String> login(@RequestBody AuthLogin authLogin) {
         Identity identity = identityService.findByUsernameAndSource(authLogin.getUsername(), authLogin.getSource());
         Assert.notNull(identity, ErrorCode.USERNAME_NOT_EXIST, "Username does not exist.");
         Assert.isTrue(identity.getStatus() == IdentityConst.NORMAL, ErrorCode.ABNORMAL, "Account is not normal.");
@@ -73,14 +73,11 @@ public class AuthController {
     }
 
     @PostMapping("/preregister")
-    public Response preRegister(@RequestBody AuthPreregister authPreregister) {
+    public Response<String> preRegister(@RequestBody AuthPreregister authPreregister) {
         Identity existIdentity = identityService.findByUsername(authPreregister.getUsername());
 
         // Whether is preregistered.
-        Assert.isTrue(existIdentity == null || existIdentity.getStatus() == IdentityConst.PREREGISTER, ErrorCode.USERNAME_EXIST, "Username exists.");
-        if (existIdentity != null && existIdentity.getStatus() == IdentityConst.PREREGISTER) {
-            return Response.success("Preregister successfully.", existIdentity.getUuid());
-        }
+        Assert.isTrue(existIdentity == null || existIdentity.getStatus() != IdentityConst.PREREGISTER, ErrorCode.USERNAME_EXIST, "Username exists.");
 
         Identity identity = new Identity();
         identity.setUuid(UUID.randomUUID().toString());
@@ -99,7 +96,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public Response register(@RequestBody AuthRegister authRegister) {
+    public Response<String> register(@RequestBody AuthRegister authRegister) {
         Identity identity = identityService.findByUuid(authRegister.getUuid());
         Assert.notNull(identity, "Register failed because UUID is missing.");
         identity.setStatus(IdentityConst.NORMAL);
@@ -114,7 +111,7 @@ public class AuthController {
      * @return
      */
     @PostMapping("/logout")
-    public Response logout(@RequestBody AuthLogout authLogout) {
+    public Response<String> logout(@RequestBody AuthLogout authLogout) {
         Identity identity = identityService.findByUuid(authLogout.getUuid());
         Assert.notNull(identity, ErrorCode.USERNAME_NOT_EXIST, "Username does not exist.");
         Token token = identity.getToken();

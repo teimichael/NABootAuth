@@ -10,29 +10,29 @@ import stu.napls.nabootauth.core.response.Response;
 
 /**
  * @Author Tei Michael
- * @Date 12/29/2019
+ * @Date 2/21/2022
  */
 @ControllerAdvice
-public class SystemExceptionHandler {
-    private final static Logger logger = LoggerFactory.getLogger(SystemExceptionHandler.class);
+public class GlobalExceptionHandler {
+    private final static Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ResponseBody
     @ExceptionHandler(value = SystemException.class)
-    public Response systemExceptionHandler(SystemException e) {
+    public Response<String> systemExceptionHandler(SystemException e) {
         logger.error(e.getMessage());
         return Response.failure(e.getCode(), e.getMessage());
     }
 
     @ResponseBody
     @ExceptionHandler(value = ExpiredJwtException.class)
-    public Response expiredJwtExceptionHandler(ExpiredJwtException e) {
+    public Response<String> expiredJwtExceptionHandler(ExpiredJwtException e) {
         logger.error(e.getMessage());
         return Response.failure("Token expired.");
     }
 
     @ResponseBody
     @ExceptionHandler(value = Exception.class)
-    public Response errorHandler(Exception e) {
+    public Response<String> errorHandler(Exception e) {
         logger.error(e.getMessage());
         return Response.failure("Internal Error.");
     }

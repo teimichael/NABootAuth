@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import stu.napls.nabootauth.config.GlobalKey;
 import stu.napls.nabootauth.core.dictionary.TokenConst;
 import stu.napls.nabootauth.core.exception.Assert;
+import stu.napls.nabootauth.core.exception.SystemException;
 import stu.napls.nabootauth.core.response.Response;
 import stu.napls.nabootauth.model.Token;
 import stu.napls.nabootauth.model.vo.AuthVerify;
@@ -17,8 +18,8 @@ import javax.annotation.Resource;
 import java.util.Date;
 
 /**
- * @Author Tei Michael
- * @Date 12/29/2019
+ * @author Tei Michael
+ * @date 2/21/2022
  */
 @RestController
 public class VerifyController {
@@ -27,7 +28,7 @@ public class VerifyController {
     private TokenService tokenService;
 
     @PostMapping("/verify")
-    public Response verifyToken(@RequestBody AuthVerify authVerify) {
+    public Response<String> verifyToken(@RequestBody AuthVerify authVerify) {
         String token = authVerify.getToken();
 
         // Validate
@@ -35,11 +36,15 @@ public class VerifyController {
         Assert.isTrue(!"".equals(token), "Token is empty.");
 
         // Parse JWT
-        Claims claims = Jwts.parser()
-                .setSigningKey(GlobalKey.JWT_SIGNING_KEY)
-                .parseClaimsJws(token.replace("Bearer ", ""))
-                .getBody();
-
+        Claims claims;
+        try {
+             claims = Jwts.parser()
+                    .setSigningKey(GlobalKey.JWT_SIGNING_KEY)
+                    .parseClaimsJws(token.replace("Bearer ", ""))
+                    .getBody();
+        } catch (Exception e) {
+            throw new SystemException("Token is invalid.");
+        }
 
         Assert.isTrue(claims.getExpiration().after(new Date()), "Token expired.");
 

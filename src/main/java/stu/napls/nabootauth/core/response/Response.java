@@ -6,35 +6,35 @@ import stu.napls.nabootauth.core.dictionary.ResponseCode;
 import java.io.Serializable;
 
 @Data
-public class Response implements Serializable {
+public class Response<T> implements Serializable {
 
     private int code;
     private String message;
-    private Object data;
+    private T data;
 
-    private Response(int code, String message, Object data) {
+    private Response(int code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
     }
 
-    public static Response success(Object data) {
-        return new Response(ResponseCode.SUCCESS, "ok", data);
+    public static <T> Response<T> success(T data) {
+        return new Response<T>(ResponseCode.SUCCESS, "ok", data);
     }
 
-    public static Response success(String message) {
-        return new Response(ResponseCode.SUCCESS, message, null);
+    public static <T> Response<T> success(String message) {
+        return new Response<T>(ResponseCode.SUCCESS, message, null);
     }
 
-    public static Response success(String message, Object data) {
-        return new Response(ResponseCode.SUCCESS, message, data);
+    public static <T> Response<T> success(String message, T data) {
+        return new Response<T>(ResponseCode.SUCCESS, message, data);
     }
 
-    public static Response failure(int code, String message) {
-        return new Response(code, message, null);
+    public static <T> Response<T> failure(int code, String message) {
+        return new Response<T>(code, message, null);
     }
 
-    public static Response failure(String message) {
+    public static <T> Response<T> failure(String message) {
         return failure(ResponseCode.FAILURE, message);
     }
 
@@ -43,4 +43,3 @@ public class Response implements Serializable {
     }
 
 }
-
